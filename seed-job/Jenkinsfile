@@ -1,0 +1,21 @@
+node {
+    stage('Checkout') {
+        def scmConfig = [
+            $class: 'GitSCM',
+            branches: [[name: 'main']],
+            userRemoteConfigs: [
+                [url: 'https://github.com/mark-icy/ci-jobs.git']
+            ]
+        ]
+        checkout(scmConfig)
+    }
+    stage('Initialize Jobs') {
+        def groovyFiles = findFiles(glob: '**/*.groovy')
+        def concatenatedFileNames = groovyFiles.collect { file -> file.name }.join('\n')
+        
+        jobDsl targets: concatenatedFileNames,
+               removedJobAction: 'DELETE',
+               removedViewAction: 'DELETE',
+               lookupStrategy: 'SEED_JOB'
+    }
+}
